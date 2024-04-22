@@ -8,7 +8,7 @@ const User = require("../models/user");
 // Set up options for JWT strategy
 const JWT_SECRET = process.env.JWT_SECRET;
 const options = {
-  jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   secretOrKey: JWT_SECRET,
 };
 
