@@ -15,6 +15,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+// Connect to DB
+const db = require("./config/database");
+db.connect().catch((err) => console.log(err));
+
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/posts", postsRouter);
