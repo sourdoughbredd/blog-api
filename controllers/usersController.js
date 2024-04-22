@@ -1,8 +1,11 @@
+require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const User = require("../models/user");
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 exports.signup = [
   // Validate/sanitize
@@ -35,7 +38,6 @@ exports.signup = [
     // Check validation
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log(errors);
       return res.status(400).json({
         error: {
           code: 400,
@@ -51,12 +53,23 @@ exports.signup = [
     const { username, email, password } = req.body;
 
     // Check if email already in DB
-    const existingUser = await User.findOne({ email }).exec();
-    if (existingUser) {
+    const existingEmail = await User.findOne({ email }).exec();
+    if (existingEmail) {
       return res.status(409).json({
         error: {
           code: 409,
           message: "A user with this email already exists.",
+        },
+      });
+    }
+
+    // Check if username already taken
+    const existingUser = await User.findOne({ username }).exec();
+    if (existingUser) {
+      return res.status(409).json({
+        error: {
+          code: 409,
+          message: "This username is not available.",
         },
       });
     }
@@ -69,9 +82,46 @@ exports.signup = [
   }),
 ];
 
-exports.login = (req, res, next) => {
-  res.send(`NOT IMPLEMENTED: login`);
-};
+exports.login = [
+  // Validate/sanitize
+  body("username", "Username is required").trim().notEmpty(),
+  body("password", "Password is required").trim().notEmpty(),
+
+  // Process the request
+  asyncHandler(async (req, res, next) => {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Request validation failed",
+          details: errors.array().map((err) => ({
+            field: err.path,
+            error: err.msg,
+          })),
+        },
+      });
+    }
+
+    const { username, password } = req.body;
+
+    // Get user from DB and check password
+    const user = await User.findOne({ username }).exec();
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      // User not found or password does not match
+      return res.status(401).json({
+        error: "Invalid username or password.",
+      });
+    }
+
+    // All checks passed. Assign a JWT
+    const token = jwt.sign({ user_id: user._id }, JWT_SECRET, {
+      expiresIn: "1h",
+    });
+    return res.status(200).json({ message: "Login successful.", token });
+  }),
+];
 
 exports.logout = (req, res, next) => {
   res.send(`NOT IMPLEMENTED: logout`);
