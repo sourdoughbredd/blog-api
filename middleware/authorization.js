@@ -1,8 +1,8 @@
 const { authenticate } = require("./authentication");
 
-exports.isLoggedIn = authenticate;
+const isLoggedIn = authenticate;
 
-exports.isAuthor = (req, res, next) => {
+const isAuthor = (req, res, next) => {
   if (!req.user.isAuthor) {
     return res.status(401).json({
       error: {
@@ -15,8 +15,8 @@ exports.isAuthor = (req, res, next) => {
   next();
 };
 
-exports.canUpdateUser = (req, res, next) => {
-  if (req.params.userId !== req.user._id) {
+const isReferencedUser = (req, res, next) => {
+  if (req.params.userId !== req.user._id.toString()) {
     return res.status(401).json({
       error: {
         code: 401,
@@ -27,7 +27,7 @@ exports.canUpdateUser = (req, res, next) => {
   next();
 };
 
-exports.canDeleteUser = (req, res, next) => {
+const isReferencedUserOrAuthor = (req, res, next) => {
   if (req.params.userId !== req.user._id && !req.user.isAuthor) {
     return res.status(401).json({
       error: {
@@ -38,3 +38,17 @@ exports.canDeleteUser = (req, res, next) => {
   }
   next();
 };
+
+// USERS
+
+exports.canGetAllUsers = [isLoggedIn, isAuthor];
+
+exports.canGetUser = [isLoggedIn, isAuthor];
+
+exports.canUpdateUser = [isLoggedIn, isReferencedUser];
+
+exports.canDeleteUser = [isLoggedIn, isReferencedUserOrAuthor];
+
+// COMMENTS
+
+exports.canPostComment = isLoggedIn;
