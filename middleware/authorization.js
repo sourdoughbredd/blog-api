@@ -49,6 +49,14 @@ exports.canUpdateUser = [isLoggedIn, isReferencedUser];
 
 exports.canDeleteUser = [isLoggedIn, isReferencedUserOrAuthor];
 
+// POSTS
+
+exports.canCreatePost = [isLoggedIn, isAuthor];
+
+exports.canUpdatePost = [isLoggedIn, isAuthor];
+
+exports.canDeletePost = [isLoggedIn, isAuthor];
+
 // COMMENTS
 
 exports.canPostComment = isLoggedIn;
