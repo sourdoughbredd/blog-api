@@ -8,7 +8,13 @@ exports.authenticate = (req, res, next) => {
       return next(err);
     }
     if (!user || user.refreshToken === null) {
-      return res.status(401).json({ message: "Access denied" });
+      return res.status(401).json({
+        error: {
+          code: 401,
+          message:
+            "Unauthorized: You must be logged in to access this resource",
+        },
+      });
     }
     req.user = user;
     next();
