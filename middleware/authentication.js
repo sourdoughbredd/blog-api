@@ -1,26 +1,16 @@
-// const passport = require("passport");
-
-// Load the passport configuration
 const passport = require("../config/passport");
 
-// Authenticate JWT with passport
-function authenticate(req, res, next) {
+// Authentication will fail if user not found in DB or if the refresh token in
+// their user record has been revoked (nullified)
+exports.authenticate = (req, res, next) => {
   passport.authenticate("jwt", { session: false }, (err, user, info) => {
     if (err) {
       return next(err);
     }
-
-    if (user) {
-      // Valid token
-      req.user = user;
-      res.locals.currentUser = user;
-    } else {
-      // Invalid token
-      res.locals.currentUser = null;
+    if (!user || user.refreshToken === null) {
+      return res.status(401).json({ message: "Access denied" });
     }
-
+    req.user = user;
     next();
   })(req, res, next);
-}
-
-module.exports = authenticate;
+};

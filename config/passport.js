@@ -6,10 +6,9 @@ const passport = require("passport");
 const User = require("../models/user");
 
 // Set up options for JWT strategy
-const JWT_SECRET = process.env.JWT_SECRET;
 const options = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: JWT_SECRET,
+  secretOrKey: process.env.JWT_SECRET,
 };
 
 const strategy = new JwtStrategy(options, (payload, done) => {

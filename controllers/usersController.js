@@ -5,8 +5,7 @@ const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const User = require("../models/user");
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
+// SIGNUP
 exports.signup = [
   // Validate/sanitize
   body("username")
@@ -82,6 +81,7 @@ exports.signup = [
   }),
 ];
 
+// LOGIN
 exports.login = [
   // Validate/sanitize
   body("username", "Username is required").trim().notEmpty(),
@@ -116,16 +116,103 @@ exports.login = [
     }
 
     // All checks passed. Assign a JWT
-    const token = jwt.sign({ user_id: user._id }, JWT_SECRET, {
-      expiresIn: "1h",
+    const accessToken = jwt.sign(
+      { user_id: user._id },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "15m",
+      }
+    );
+    const refreshToken = jwt.sign(
+      { user_id: user._id },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    );
+    user.refreshToken = refreshToken;
+    await user.save();
+    return res.status(200).json({
+      message: "Login successful.",
+      tokens: { accessToken, refreshToken },
     });
-    return res.status(200).json({ message: "Login successful.", token });
   }),
 ];
 
-exports.logout = (req, res, next) => {
-  res.send(`NOT IMPLEMENTED: logout`);
-};
+// REFRESH TOKEN
+exports.refreshAccessToken = asyncHandler(async (req, res, next) => {
+  // Grab refresh token
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    return res.status(400).json({
+      error: {
+        code: 400,
+        message: "Refresh token required",
+      },
+    });
+  }
+  try {
+    // Extract payload and use to find user
+    const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const user = await User.findById(payload.user_id).exec();
+    if (!user || refreshToken !== user.refreshToken) {
+      // User not found or refresh token mismatch with DB.
+      // This allows us to revoke refresh tokens by nullifying them in the DB
+      return res.status(401).json({
+        error: {
+          code: 401,
+          message: "Unauthorized: Invalid refresh token",
+        },
+      });
+    }
+    // Refresh the token
+    const accessToken = jwt.sign(
+      { user_id: user._id },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "15m",
+      }
+    );
+    res.status(200).json({ accessToken, message: "Access token refreshed." });
+  } catch (err) {
+    if (err instanceof jwt.TokenExpiredError) {
+      return res.status(401).json({
+        error: {
+          code: 401,
+          message: "Unauthorized: Expired refresh token",
+        },
+      });
+    }
+  }
+});
+
+// LOGOUT
+exports.logout = asyncHandler(async (req, res, next) => {
+  // Logout by deleting refreshToken from user so it can't be used again
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    return res.status(400).json({
+      error: {
+        code: 400,
+        message: "Refresh token required",
+      },
+    });
+  }
+  try {
+    const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const user = await User.findById(payload.user_id).exec();
+    user.refreshToken = null;
+    await user.save();
+    res.status(200).json({ message: "Successfully logged out." });
+  } catch (err) {
+    if (err instanceof jwt.TokenExpiredError) {
+      return res.status(401).json({
+        error: {
+          code: 401,
+          message: "Unauthorized: Expired refresh token",
+        },
+      });
+    }
+  }
+});
 
 exports.getAllUsers = (req, res, next) => {
   res.send(`NOT IMPLEMENTED: Get all users`);

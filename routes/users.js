@@ -5,11 +5,13 @@ const usersController = require("../controllers/usersController");
 
 router.get("/", usersController.getAllUsers);
 
-router.post("/login", usersController.login);
-
 router.post("/signup", usersController.signup);
 
+router.post("/login", usersController.login);
+
 router.post("/logout", usersController.logout);
+
+router.post("/token", usersController.refreshAccessToken);
 
 router.get("/:userId", usersController.getUser);
 
