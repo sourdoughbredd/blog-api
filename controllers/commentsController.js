@@ -1,10 +1,17 @@
+const { authenticate } = require("../middleware/authentication");
+
 exports.getPostComments = (req, res, next) => {
   res.send(`NOT IMPLEMENTED: Get comments for post ${req.params.postId}`);
 };
 
-exports.createPostComment = (req, res, next) => {
-  res.send(`NOT IMPLEMENTED: Create comment for post ${req.params.postId}`);
-};
+exports.createPostComment = [
+  authenticate,
+  (req, res, next) => {
+    res.json({
+      message: `You've reached a protected route! NOT IMPLEMENTED: Create comment for post ${req.params.postId}`,
+    });
+  },
+];
 
 exports.getPostComment = (req, res, next) => {
   res.send(
