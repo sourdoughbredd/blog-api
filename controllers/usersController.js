@@ -4,6 +4,8 @@ const bcrypt = require("bcryptjs");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const User = require("../models/user");
+const auth = require("../middleware/authorization");
+const mongoose = require("mongoose");
 
 // SIGNUP
 exports.signup = [
@@ -214,18 +216,183 @@ exports.logout = asyncHandler(async (req, res, next) => {
   }
 });
 
-exports.getAllUsers = (req, res, next) => {
-  res.send(`NOT IMPLEMENTED: Get all users`);
-};
+exports.getAllUsers = [
+  auth.canGetAllUsers,
+  asyncHandler(async (req, res, next) => {
+    const users = await User.find({}, "username email").exec();
+    res.status(200).json({ message: "Success", users });
+  }),
+];
 
-exports.getUser = (req, res, next) => {
-  res.send(`NOT IMPLEMENTED: Get user ${req.params.userId}`);
-};
+exports.getUser = [
+  auth.canGetUser,
+  asyncHandler(async (req, res, next) => {
+    // Make sure ID provided is valid
+    if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Invalid user ID",
+          id: req.params.userId,
+        },
+      });
+    }
+    // Get user
+    const user = await User.findById(req.params.userId, "username email");
+    if (!user) {
+      return res.status(404).json({
+        error: {
+          code: 404,
+          message: "User not found",
+        },
+      });
+    }
+    return res.status(200).json({ message: "Success", user });
+  }),
+];
 
-exports.updateUser = (req, res, next) => {
-  res.send(`NOT IMPLEMENTED: Update user ${req.params.userId}`);
-};
+exports.updateUser = [
+  auth.canUpdateUser,
+  body("username")
+    .trim()
+    .optional()
+    .isLength({ min: 5, max: 20 })
+    .withMessage("Username must be between 5 to 20 characters long")
+    .matches(/^[A-Za-z0-9_-]+$/)
+    .withMessage(
+      "Username can only contain letters, numbers, underscores, and hyphens"
+    )
+    .matches(/^[A-Za-z0-9].*[A-Za-z0-9]$/)
+    .withMessage("Username must start and end with a letter or number"),
+  body("email", "Invalid email").trim().optional().isEmail(),
+  body("password")
+    .trim()
+    .optional()
+    .isStrongPassword({
+      minLength: 8,
+      minLowercase: 1,
+      minUppercase: 1,
+      minNumbers: 1,
+      minSymbols: 1,
+    })
+    .withMessage(
+      "Password must contain at least 1 lowercase letter, 1 uppercase letter, 1 number, 1 special character, and 8 characters in total."
+    ),
+  asyncHandler(async (req, res, next) => {
+    // Make sure ID provided is valid
+    if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Invalid user ID",
+          id: req.params.userId,
+        },
+      });
+    }
 
-exports.deleteUser = (req, res, next) => {
-  res.send(`NOT IMPLEMENTED: Delete user ${req.params.userId}`);
-};
+    // Check body validation
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Request validation failed",
+          details: errors.array().map((err) => ({
+            field: err.path,
+            error: err.msg,
+          })),
+        },
+      });
+    }
+
+    // Find the user
+    const user = await User.findById(req.params.userId).exec();
+    if (!user) {
+      return res.status(404).json({
+        error: {
+          code: 404,
+          message: "User not found",
+        },
+      });
+    }
+
+    // Make sure new data was provided
+    const newUsername = req.body.username;
+    const newEmail = req.body.email;
+    const newPassword = req.body.password;
+    if (
+      (!newUsername || newUsername === user.username) &&
+      (!newEmail || newEmail === user.email) &&
+      !newPassword
+    ) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Bad Request: No new data provided",
+        },
+      });
+    }
+
+    // Check if email already in DB
+    const existingEmail = newEmail
+      ? await User.findOne({ email: newEmail }).exec()
+      : null;
+    if (existingEmail && newEmail !== user.email) {
+      return res.status(409).json({
+        error: {
+          code: 409,
+          message: "A user with this email already exists.",
+        },
+      });
+    }
+
+    // Check if username already taken
+    const existingUser = newUsername
+      ? await User.findOne({ username: newUsername }).exec()
+      : null;
+    if (existingUser && newUsername !== user.username) {
+      return res.status(409).json({
+        error: {
+          code: 409,
+          message: "This username is not available.",
+        },
+      });
+    }
+
+    // All checks passed. Update user
+    if (newUsername && newUsername !== user.username)
+      user.username = newUsername;
+    if (newEmail && newEmail !== user.email) user.email = newEmail;
+    if (newPassword) user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+    return res.status(200).json({ message: "User updated successfully" });
+  }),
+];
+
+exports.deleteUser = [
+  auth.canDeleteUser,
+  asyncHandler(async (req, res, next) => {
+    // Make sure ID provided is valid
+    if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Invalid user ID",
+          id: req.params.userId,
+        },
+      });
+    }
+
+    // Delete the user
+    const user = await User.findByIdAndDelete(req.params.userId);
+    if (!user) {
+      return res.status(404).json({
+        error: {
+          code: 404,
+          message: "User not found",
+        },
+      });
+    }
+    return res.status(200).json({ message: "User deleted successfully" });
+  }),
+];
