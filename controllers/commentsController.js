@@ -1,11 +1,11 @@
-const { authenticate } = require("../middleware/authentication");
+const { isLoggedIn } = require("../middleware/authorization");
 
 exports.getPostComments = (req, res, next) => {
   res.send(`NOT IMPLEMENTED: Get comments for post ${req.params.postId}`);
 };
 
 exports.createPostComment = [
-  authenticate,
+  isLoggedIn,
   (req, res, next) => {
     res.json({
       message: `You've reached a protected route! NOT IMPLEMENTED: Create comment for post ${req.params.postId}`,
