@@ -69,4 +69,8 @@ exports.canDeletePost = [authenticate, isLoggedIn, isAuthor];
 
 // COMMENTS
 
-exports.canPostComment = [authenticate, isLoggedIn];
+exports.canCreateComment = [authenticate, isLoggedIn];
+
+exports.canUpdateComment = [authenticate, isLoggedIn]; // more done in controller after looking up comment
+
+exports.canDeleteComment = [authenticate, isLoggedIn]; // more done in controller after looking up comment
