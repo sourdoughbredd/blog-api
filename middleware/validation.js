@@ -79,3 +79,10 @@ exports.createPostValidationRules = () => [
     .withMessage("text cannot be more than 12,000 characters"),
   body("isPublished", "isPublished must be a boolean").isBoolean(),
 ];
+
+exports.createUpdatePostValidationRules = () => {
+  // Updating post is same as create post, except the fields are optional
+  return this.createPostValidationRules().map((rule) =>
+    rule.optional({ values: "falsy" })
+  );
+};
