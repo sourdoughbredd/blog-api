@@ -38,32 +38,44 @@ exports.createPost = [
   }),
 ];
 
-exports.getPost = asyncHandler(async (req, res, next) => {
-  // Make sure ID provided is valid
-  if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
-    return res.status(400).json({
-      error: {
-        code: 400,
-        message: "Invalid post ID",
-        id: req.params.postId,
-      },
-    });
-  }
+exports.getPost = [
+  authenticate,
+  asyncHandler(async (req, res, next) => {
+    // Make sure ID provided is valid
+    if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Invalid post ID",
+          id: req.params.postId,
+        },
+      });
+    }
 
-  // Get post
-  const post = await Post.findById(req.params.postId)
-    .populate("user", "username")
-    .exec();
-  if (!post) {
-    return res.status(404).json({
-      error: {
-        code: 404,
-        message: "Could not find post",
-      },
-    });
-  }
-  res.status(200).json({ message: "Success", post });
-});
+    // Get post
+    const post = await Post.findById(req.params.postId)
+      .populate("user", "username")
+      .exec();
+    if (!post) {
+      return res.status(404).json({
+        error: {
+          code: 404,
+          message: "Could not find post",
+        },
+      });
+    }
+    const userIsAuthor = req.user && req.user.isAuthor;
+    if (!post.isPublished && !userIsAuthor) {
+      return res.status(404).json({
+        error: {
+          code: 401,
+          message: "Unauthorized",
+        },
+      });
+    }
+    res.status(200).json({ message: "Success", post });
+  }),
+];
 
 exports.updatePost = [
   authorizer.canUpdatePost,
