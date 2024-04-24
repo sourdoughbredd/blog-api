@@ -94,3 +94,5 @@ exports.createCommentValidationRules = () => [
     .trim()
     .isLength({ min: 1, max: 200 }),
 ];
+
+exports.createUpdateCommentValidationRules = this.createCommentValidationRules;
