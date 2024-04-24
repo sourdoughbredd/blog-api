@@ -2,7 +2,6 @@ const Post = require("../models/post");
 const authorizer = require("../middleware/authorization");
 const validator = require("../middleware/validation");
 const asyncHandler = require("express-async-handler");
-const { body, validationResult } = require("express-validator");
 
 exports.getAllPosts = asyncHandler(async (req, res, next) => {
   const posts = await Post.find({}).exec();
@@ -11,23 +10,9 @@ exports.getAllPosts = asyncHandler(async (req, res, next) => {
 
 exports.createPost = [
   authorizer.canCreatePost,
-  ...validator.createPostValidator(),
+  ...validator.createPostValidationRules(),
+  validator.validate,
   asyncHandler(async (req, res, next) => {
-    // Check validation
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        error: {
-          code: 400,
-          message: "Request validation failed",
-          details: errors.array().map((err) => ({
-            field: err.path,
-            error: err.msg,
-          })),
-        },
-      });
-    }
-
     // All checks passed. Create the post
     const { title, text, isPublished } = req.body;
     const post = new Post({

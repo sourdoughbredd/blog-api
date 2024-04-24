@@ -2,54 +2,18 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const asyncHandler = require("express-async-handler");
-const { body, validationResult } = require("express-validator");
 const User = require("../models/user");
-const auth = require("../middleware/authorization");
+const authorizer = require("../middleware/authorization");
+const validator = require("../middleware/validation");
 const mongoose = require("mongoose");
 
 // SIGNUP
 exports.signup = [
-  // Validate/sanitize
-  body("username")
-    .trim()
-    .isLength({ min: 5, max: 20 })
-    .withMessage("Username must be between 5 to 20 characters long")
-    .matches(/^[A-Za-z0-9_-]+$/)
-    .withMessage(
-      "Username can only contain letters, numbers, underscores, and hyphens"
-    )
-    .matches(/^[A-Za-z0-9].*[A-Za-z0-9]$/)
-    .withMessage("Username must start and end with a letter or number"),
-  body("email", "Invalid email").trim().isEmail(),
-  body("password")
-    .trim()
-    .isStrongPassword({
-      minLength: 8,
-      minLowercase: 1,
-      minUppercase: 1,
-      minNumbers: 1,
-      minSymbols: 1,
-    })
-    .withMessage(
-      "Password must contain at least 1 lowercase letter, 1 uppercase letter, 1 number, 1 special character, and 8 characters in total."
-    ),
-
+  ...validator.createSignupValidationRules(),
+  validator.validate,
   // Process the request
   asyncHandler(async (req, res, next) => {
     // Check validation
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        error: {
-          code: 400,
-          message: "Request validation failed",
-          details: errors.array().map((err) => ({
-            field: err.path,
-            error: err.msg,
-          })),
-        },
-      });
-    }
 
     const { username, email, password } = req.body;
 
@@ -85,27 +49,10 @@ exports.signup = [
 
 // LOGIN
 exports.login = [
-  // Validate/sanitize
-  body("username", "Username is required").trim().notEmpty(),
-  body("password", "Password is required").trim().notEmpty(),
-
+  ...validator.createLoginValidationRules(),
+  validator.validate,
   // Process the request
   asyncHandler(async (req, res, next) => {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        error: {
-          code: 400,
-          message: "Request validation failed",
-          details: errors.array().map((err) => ({
-            field: err.path,
-            error: err.msg,
-          })),
-        },
-      });
-    }
-
     const { username, password } = req.body;
 
     // Get user from DB and check password
@@ -217,7 +164,7 @@ exports.logout = asyncHandler(async (req, res, next) => {
 });
 
 exports.getAllUsers = [
-  auth.canGetAllUsers,
+  authorizer.canGetAllUsers,
   asyncHandler(async (req, res, next) => {
     const users = await User.find({}, "username email").exec();
     res.status(200).json({ message: "Success", users });
@@ -225,7 +172,7 @@ exports.getAllUsers = [
 ];
 
 exports.getUser = [
-  auth.canGetUser,
+  authorizer.canGetUser,
   asyncHandler(async (req, res, next) => {
     // Make sure ID provided is valid
     if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
@@ -252,32 +199,9 @@ exports.getUser = [
 ];
 
 exports.updateUser = [
-  auth.canUpdateUser,
-  body("username")
-    .trim()
-    .optional()
-    .isLength({ min: 5, max: 20 })
-    .withMessage("Username must be between 5 to 20 characters long")
-    .matches(/^[A-Za-z0-9_-]+$/)
-    .withMessage(
-      "Username can only contain letters, numbers, underscores, and hyphens"
-    )
-    .matches(/^[A-Za-z0-9].*[A-Za-z0-9]$/)
-    .withMessage("Username must start and end with a letter or number"),
-  body("email", "Invalid email").trim().optional().isEmail(),
-  body("password")
-    .trim()
-    .optional()
-    .isStrongPassword({
-      minLength: 8,
-      minLowercase: 1,
-      minUppercase: 1,
-      minNumbers: 1,
-      minSymbols: 1,
-    })
-    .withMessage(
-      "Password must contain at least 1 lowercase letter, 1 uppercase letter, 1 number, 1 special character, and 8 characters in total."
-    ),
+  authorizer.canUpdateUser,
+  ...validator.createUpdateUserValidationRules(),
+  validator.validate,
   asyncHandler(async (req, res, next) => {
     // Make sure ID provided is valid
     if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
@@ -286,21 +210,6 @@ exports.updateUser = [
           code: 400,
           message: "Invalid user ID",
           id: req.params.userId,
-        },
-      });
-    }
-
-    // Check body validation
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        error: {
-          code: 400,
-          message: "Request validation failed",
-          details: errors.array().map((err) => ({
-            field: err.path,
-            error: err.msg,
-          })),
         },
       });
     }
@@ -370,7 +279,7 @@ exports.updateUser = [
 ];
 
 exports.deleteUser = [
-  auth.canDeleteUser,
+  authorizer.canDeleteUser,
   asyncHandler(async (req, res, next) => {
     // Make sure ID provided is valid
     if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
