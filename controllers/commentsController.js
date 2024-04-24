@@ -73,11 +73,50 @@ exports.createPostComment = [
   }),
 ];
 
-exports.getPostComment = (req, res, next) => {
-  res.send(
-    `NOT IMPLEMENTED: Get comment ${req.params.commentId} for post ${req.params.postId}`
-  );
-};
+exports.getPostComment = asyncHandler(async (req, res, next) => {
+  // Make sure IDs provided are valid
+  if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
+    return res.status(400).json({
+      error: {
+        code: 400,
+        message: "Invalid post ID",
+        id: req.params.postId,
+      },
+    });
+  }
+  if (!mongoose.Types.ObjectId.isValid(req.params.commentId)) {
+    return res.status(400).json({
+      error: {
+        code: 400,
+        message: "Invalid comment ID",
+        id: req.params.commentId,
+      },
+    });
+  }
+
+  // Check that post exists
+  const postExists = await Post.exists({ _id: req.params.postId });
+  if (!postExists) {
+    res.status(404).json({
+      error: {
+        code: 404,
+        message: "Post not found",
+      },
+    });
+  }
+
+  // Retrieve the comment
+  const comment = await Comment.findById(req.params.commentId).exec();
+  if (!comment) {
+    res.status(404).json({
+      error: {
+        code: 404,
+        message: "Comment not found",
+      },
+    });
+  }
+  res.status(201).json({ message: "Success", comment });
+});
 
 exports.updatePostComment = [
   authorizer.canCreateComment,
