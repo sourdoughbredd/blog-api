@@ -159,6 +159,6 @@ exports.deletePost = [
 
     // Delete the post comments
     await Comment.deleteMany({ post: post._id }).exec();
-    return res.status(200).json({ message: "Successfully deleted post" });
+    return res.status(204).json({ message: "Successfully deleted post" });
   }),
 ];
