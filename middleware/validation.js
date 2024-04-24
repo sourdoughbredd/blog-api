@@ -51,33 +51,12 @@ exports.createLoginValidationRules = () => [
   body("password", "Password is required").trim().notEmpty(),
 ];
 
-exports.createUpdateUserValidationRules = () => [
-  body("username")
-    .trim()
-    .optional()
-    .isLength({ min: 5, max: 20 })
-    .withMessage("Username must be between 5 to 20 characters long")
-    .matches(/^[A-Za-z0-9_-]+$/)
-    .withMessage(
-      "Username can only contain letters, numbers, underscores, and hyphens"
-    )
-    .matches(/^[A-Za-z0-9].*[A-Za-z0-9]$/)
-    .withMessage("Username must start and end with a letter or number"),
-  body("email", "Invalid email").trim().optional().isEmail(),
-  body("password")
-    .trim()
-    .optional()
-    .isStrongPassword({
-      minLength: 8,
-      minLowercase: 1,
-      minUppercase: 1,
-      minNumbers: 1,
-      minSymbols: 1,
-    })
-    .withMessage(
-      "Password must contain at least 1 lowercase letter, 1 uppercase letter, 1 number, 1 special character, and 8 characters in total."
-    ),
-];
+exports.createUpdateUserValidationRules = () => {
+  // Updating user is same as signup, except the fields are optional
+  return this.createSignupValidationRules().map((rule) =>
+    rule.optional({ values: "falsy" })
+  );
+};
 
 // POSTS
 
