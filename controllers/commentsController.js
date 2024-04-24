@@ -2,6 +2,7 @@ const Comment = require("../models/comment");
 const Post = require("../models/post");
 const asyncHandler = require("express-async-handler");
 const authorizer = require("../middleware/authorization");
+const validator = require("../middleware/validation");
 const mongoose = require("mongoose");
 
 exports.getPostComments = asyncHandler(async (req, res, next) => {
@@ -36,11 +37,40 @@ exports.getPostComments = asyncHandler(async (req, res, next) => {
 
 exports.createPostComment = [
   authorizer.canCreateComment,
-  (req, res, next) => {
-    res.json({
-      message: `You've reached a protected route! NOT IMPLEMENTED: Create comment for post ${req.params.postId}`,
+  ...validator.createCommentValidationRules(),
+  validator.validate,
+  asyncHandler(async (req, res, next) => {
+    // Make sure ID provided is valid
+    if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Invalid post ID",
+          id: req.params.postId,
+        },
+      });
+    }
+
+    // Check that post exists
+    const postExists = await Post.exists({ _id: req.params.postId });
+    if (!postExists) {
+      res.status(404).json({
+        error: {
+          code: 404,
+          message: "Post not found",
+        },
+      });
+    }
+
+    // Create the comment
+    const comment = new Comment({
+      post: req.params.postId,
+      user: req.user._id,
+      text: req.body.text,
     });
-  },
+    await comment.save();
+    res.status(201).json({ message: "Comment created successfully", comment });
+  }),
 ];
 
 exports.getPostComment = (req, res, next) => {
