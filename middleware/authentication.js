@@ -8,15 +8,10 @@ exports.authenticate = (req, res, next) => {
       return next(err);
     }
     if (!user || user.refreshToken === null) {
-      return res.status(401).json({
-        error: {
-          code: 401,
-          message:
-            "Unauthorized: You must be logged in to access this resource",
-        },
-      });
+      req.user = null;
+    } else {
+      req.user = user;
     }
-    req.user = user;
     next();
   })(req, res, next);
 };

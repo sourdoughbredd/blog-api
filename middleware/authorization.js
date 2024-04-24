@@ -1,6 +1,16 @@
 const { authenticate } = require("./authentication");
 
-const isLoggedIn = authenticate;
+const isLoggedIn = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      error: {
+        code: 401,
+        message: "Unauthorized: You must be logged in to access this resource",
+      },
+    });
+  }
+  next();
+};
 
 const isAuthor = (req, res, next) => {
   if (!req.user.isAuthor) {
@@ -41,22 +51,22 @@ const isReferencedUserOrAuthor = (req, res, next) => {
 
 // USERS
 
-exports.canGetAllUsers = [isLoggedIn, isAuthor];
+exports.canGetAllUsers = [authenticate, isLoggedIn, isAuthor];
 
-exports.canGetUser = [isLoggedIn, isAuthor];
+exports.canGetUser = [authenticate, isLoggedIn, isAuthor];
 
-exports.canUpdateUser = [isLoggedIn, isReferencedUser];
+exports.canUpdateUser = [authenticate, isLoggedIn, isReferencedUser];
 
-exports.canDeleteUser = [isLoggedIn, isReferencedUserOrAuthor];
+exports.canDeleteUser = [authenticate, isLoggedIn, isReferencedUserOrAuthor];
 
 // POSTS
 
-exports.canCreatePost = [isLoggedIn, isAuthor];
+exports.canCreatePost = [authenticate, isLoggedIn, isAuthor];
 
-exports.canUpdatePost = [isLoggedIn, isAuthor];
+exports.canUpdatePost = [authenticate, isLoggedIn, isAuthor];
 
-exports.canDeletePost = [isLoggedIn, isAuthor];
+exports.canDeletePost = [authenticate, isLoggedIn, isAuthor];
 
 // COMMENTS
 
-exports.canPostComment = isLoggedIn;
+exports.canPostComment = [authenticate, isLoggedIn];
