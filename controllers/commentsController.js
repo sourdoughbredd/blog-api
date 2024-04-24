@@ -1,8 +1,38 @@
+const Comment = require("../models/comment");
+const Post = require("../models/post");
+const asyncHandler = require("express-async-handler");
 const authorizer = require("../middleware/authorization");
+const mongoose = require("mongoose");
 
-exports.getPostComments = (req, res, next) => {
-  res.send(`NOT IMPLEMENTED: Get comments for post ${req.params.postId}`);
-};
+exports.getPostComments = asyncHandler(async (req, res, next) => {
+  // Make sure ID provided is valid
+  if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
+    return res.status(400).json({
+      error: {
+        code: 400,
+        message: "Invalid post ID",
+        id: req.params.postId,
+      },
+    });
+  }
+
+  // Check that post exists
+  const postExists = await Post.exists({ _id: req.params.postId });
+  if (!postExists) {
+    res.status(404).json({
+      error: {
+        code: 404,
+        message: "Post not found",
+      },
+    });
+  }
+
+  // Get post comments
+  const comments = await Comment.find({ post: req.params.postId })
+    .populate("user", "username")
+    .exec();
+  res.status(200).json({ message: "Success", comments });
+});
 
 exports.createPostComment = [
   authorizer.canCreateComment,
