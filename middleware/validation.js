@@ -86,3 +86,11 @@ exports.createUpdatePostValidationRules = () => {
     rule.optional({ values: "falsy" })
   );
 };
+
+// COMMENTS
+
+exports.createCommentValidationRules = () => [
+  body("text", "Text must be 1 to 200 characters long")
+    .trim()
+    .isLength({ min: 1, max: 200 }),
+];
