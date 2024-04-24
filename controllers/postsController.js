@@ -1,4 +1,5 @@
 const Post = require("../models/post");
+const Comment = require("../models/comment");
 const authorizer = require("../middleware/authorization");
 const { authenticate } = require("../middleware/authentication");
 const validator = require("../middleware/validation");
@@ -155,6 +156,9 @@ exports.deletePost = [
         },
       });
     }
-    res.status(200).json({ message: "Successfully deleted post" });
+
+    // Delete the post comments
+    await Comment.deleteMany({ post: post._id }).exec();
+    return res.status(200).json({ message: "Successfully deleted post" });
   }),
 ];
