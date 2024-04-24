@@ -54,7 +54,7 @@ exports.createPostComment = [
     // Check that post exists
     const postExists = await Post.exists({ _id: req.params.postId });
     if (!postExists) {
-      res.status(404).json({
+      return res.status(404).json({
         error: {
           code: 404,
           message: "Post not found",
@@ -97,7 +97,7 @@ exports.getPostComment = asyncHandler(async (req, res, next) => {
   // Check that post exists
   const postExists = await Post.exists({ _id: req.params.postId });
   if (!postExists) {
-    res.status(404).json({
+    return res.status(404).json({
       error: {
         code: 404,
         message: "Post not found",
@@ -108,7 +108,7 @@ exports.getPostComment = asyncHandler(async (req, res, next) => {
   // Retrieve the comment
   const comment = await Comment.findById(req.params.commentId).exec();
   if (!comment) {
-    res.status(404).json({
+    return res.status(404).json({
       error: {
         code: 404,
         message: "Comment not found",
@@ -119,19 +119,128 @@ exports.getPostComment = asyncHandler(async (req, res, next) => {
 });
 
 exports.updatePostComment = [
-  authorizer.canCreateComment,
-  (req, res, next) => {
-    res.send(
-      `NOT IMPLEMENTED: Update comment ${req.params.commentId} for post ${req.params.postId}`
-    );
-  },
+  authorizer.canUpdateComment,
+  ...validator.createUpdateCommentValidationRules(),
+  validator.validate,
+  asyncHandler(async (req, res, next) => {
+    // Make sure IDs provided are valid
+    if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Invalid post ID",
+          id: req.params.postId,
+        },
+      });
+    }
+    if (!mongoose.Types.ObjectId.isValid(req.params.commentId)) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Invalid comment ID",
+          id: req.params.commentId,
+        },
+      });
+    }
+
+    // Check that post exists
+    const postExists = await Post.exists({ _id: req.params.postId });
+    if (!postExists) {
+      return res.status(404).json({
+        error: {
+          code: 404,
+          message: "Post not found",
+        },
+      });
+    }
+
+    // Retrieve the comment
+    const comment = await Comment.findById(req.params.commentId).exec();
+    if (!comment) {
+      return res.status(404).json({
+        error: {
+          code: 404,
+          message: "Comment not found",
+        },
+      });
+    }
+
+    // Make sure the current user is the comment's author
+    if (!req.user._id.equals(comment.user._id)) {
+      return res.status(401).json({
+        error: {
+          code: 401,
+          message: "Unauthorized. Cannot edit someone else's comment",
+        },
+      });
+    }
+
+    // Update the comment
+    comment.text = req.body.text;
+    await comment.save();
+    return res
+      .status(200)
+      .json({ message: "Successfully updated comment", comment });
+  }),
 ];
 
 exports.deletePostComment = [
   authorizer.canDeleteComment,
-  (req, res, next) => {
-    res.send(
-      `NOT IMPLEMENTED: Delete comment ${req.params.commentId} for post ${req.params.postId}`
-    );
-  },
+  asyncHandler(async (req, res, next) => {
+    // Make sure IDs provided are valid
+    if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Invalid post ID",
+          id: req.params.postId,
+        },
+      });
+    }
+    if (!mongoose.Types.ObjectId.isValid(req.params.commentId)) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Invalid comment ID",
+          id: req.params.commentId,
+        },
+      });
+    }
+
+    // Check that post exists
+    const postExists = await Post.exists({ _id: req.params.postId });
+    if (!postExists) {
+      return res.status(404).json({
+        error: {
+          code: 404,
+          message: "Post not found",
+        },
+      });
+    }
+
+    // Retrieve the comment
+    const comment = await Comment.findById(req.params.commentId).exec();
+    if (!comment) {
+      return res.status(404).json({
+        error: {
+          code: 404,
+          message: "Comment not found",
+        },
+      });
+    }
+
+    // Make sure the current user is the comment's author
+    if (!req.user._id.equals(comment.user._id)) {
+      return res.status(401).json({
+        error: {
+          code: 401,
+          message: "Unauthorized. Cannot delete someone else's comment",
+        },
+      });
+    }
+
+    // Delete the comment
+    await comment.save();
+    return res.status(204).json({ message: "Successfully deleted comment" });
+  }),
 ];
