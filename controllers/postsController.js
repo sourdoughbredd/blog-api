@@ -79,9 +79,55 @@ exports.getPost = [
 
 exports.updatePost = [
   authorizer.canUpdatePost,
-  (req, res, next) => {
-    res.send(`NOT IMPLEMENTED: Update post ${req.params.postId}`);
-  },
+  ...validator.createUpdatePostValidationRules(),
+  validator.validate,
+  asyncHandler(async (req, res, next) => {
+    // Make sure post ID is valid
+    if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Invalid post ID",
+          id: req.params.postId,
+        },
+      });
+    }
+
+    // Make sure post exists
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      res.status(404).json({
+        error: {
+          code: 404,
+          message: "Post not found",
+        },
+      });
+    }
+
+    // Make sure we got some new data
+    const newTitle = req.body.title;
+    const newText = req.body.text;
+    const newIsPublished = req.body.isPublished;
+    if (
+      (!newTitle || newTitle === post.title) &&
+      (!newText || newText === post.text) &&
+      (!newIsPublished || newIsPublished === post.isPublished)
+    ) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Bad Request: No new data provided",
+        },
+      });
+    }
+
+    // Update the post
+    if (newTitle) post.title = newTitle;
+    if (newText) post.text = newText;
+    if (newIsPublished) post.isPublished = newIsPublished;
+    await post.save();
+    res.status(200).json({ message: "Successfully updated post.", post });
+  }),
 ];
 
 exports.deletePost = [
