@@ -34,7 +34,7 @@ exports.createPost = [
       isPublished,
     });
     await post.save();
-    res.status(201).json({ message: "Post created successfully." });
+    res.status(201).json({ message: "Post created successfully.", post });
   }),
 ];
 
@@ -132,7 +132,29 @@ exports.updatePost = [
 
 exports.deletePost = [
   authorizer.canDeletePost,
-  (req, res, next) => {
-    res.send(`NOT IMPLEMENTED: Delete post ${req.params.postId}`);
-  },
+  asyncHandler(async (req, res, next) => {
+    // Make sure post ID is valid
+    if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Invalid post ID",
+          id: req.params.postId,
+        },
+      });
+    }
+
+    // Delete the post
+    const post = await Post.findByIdAndDelete(req.params.postId);
+    if (!post) {
+      return res.status(400).json({
+        error: {
+          code: 400,
+          message: "Post not found",
+          id: req.params.postId,
+        },
+      });
+    }
+    res.status(200).json({ message: "Successfully deleted post" });
+  }),
 ];
