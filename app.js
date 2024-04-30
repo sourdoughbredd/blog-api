@@ -44,7 +44,6 @@ app.use(function (err, req, res, next) {
     error: {
       code: statusCode,
       message: err.message || "Internal Server Error", // Use a generic message for 500 errors
-      stack: process.env.NODE_ENV === "development" ? err.stack : undefined, // Optionally include the stack trace in development mode
     },
   });
 });
