@@ -240,7 +240,7 @@ exports.deletePostComment = [
     }
 
     // Delete the comment
-    await comment.save();
-    return res.status(204).json({ message: "Successfully deleted comment" });
+    await Comment.findByIdAndDelete(comment._id).exec();
+    return res.status(200).json({ message: "Successfully deleted comment" });
   }),
 ];
