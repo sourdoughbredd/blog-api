@@ -15,7 +15,10 @@ exports.getAllPosts = [
     } else {
       query = { isPublished: true };
     }
-    const posts = await Post.find(query).exec();
+    const posts = await Post.find(query)
+      .populate("user", "username")
+      .sort({ timestamp: -1 })
+      .exec();
     res.status(200).json({ message: "Success", posts });
   }),
 ];
