@@ -1,7 +1,10 @@
 require("dotenv").config();
 
 const developmentOrigins = [process.env.DEV_FRONTEND_URL];
-const productionOrigins = ["https://example.com"];
+const productionOrigins = [
+  process.env.BLOG_CLIENT_URL,
+  process.env.BLOG_CMS_URL,
+];
 
 let allowedOrigins = [];
 
