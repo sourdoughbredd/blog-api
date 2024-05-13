@@ -31,6 +31,7 @@ exports.getPostComments = asyncHandler(async (req, res, next) => {
   // Get post comments
   const comments = await Comment.find({ post: req.params.postId })
     .populate("user", "username")
+    .sort({ timestamp: -1 })
     .exec();
   res.status(200).json({ message: "Success", comments });
 });
@@ -106,7 +107,9 @@ exports.getPostComment = asyncHandler(async (req, res, next) => {
   }
 
   // Retrieve the comment
-  const comment = await Comment.findById(req.params.commentId).exec();
+  const comment = await Comment.findById(req.params.commentId)
+    .populate("user", "username")
+    .exec();
   if (!comment) {
     return res.status(404).json({
       error: {
