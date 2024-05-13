@@ -98,7 +98,7 @@ exports.updatePost = [
     }
 
     // Make sure post exists
-    const post = await Post.findById(req.params.postId);
+    const post = await Post.findById(req.params.postId).exec();
     if (!post) {
       res.status(404).json({
         error: {
@@ -115,7 +115,9 @@ exports.updatePost = [
     if (
       (!newTitle || newTitle === post.title) &&
       (!newText || newText === post.text) &&
-      (!newIsPublished || newIsPublished === post.isPublished)
+      (newIsPublished === undefined ||
+        newIsPublished === null ||
+        newIsPublished === post.isPublished)
     ) {
       return res.status(400).json({
         error: {
@@ -128,7 +130,8 @@ exports.updatePost = [
     // Update the post
     if (newTitle) post.title = newTitle;
     if (newText) post.text = newText;
-    if (newIsPublished) post.isPublished = newIsPublished;
+    if (newIsPublished !== null || newIsPublished !== undefined)
+      post.isPublished = newIsPublished;
     await post.save();
     res.status(200).json({ message: "Successfully updated post.", post });
   }),
@@ -162,6 +165,6 @@ exports.deletePost = [
 
     // Delete the post comments
     await Comment.deleteMany({ post: post._id }).exec();
-    return res.status(204).json({ message: "Successfully deleted post" });
+    return res.status(200).json({ message: "Successfully deleted post" });
   }),
 ];
