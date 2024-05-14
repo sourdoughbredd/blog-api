@@ -1,12 +1,20 @@
-const Post = require("../models/post");
-const Comment = require("../models/comment");
-const authorizer = require("../middleware/authorization");
-const { authenticate } = require("../middleware/authentication");
-const validator = require("../middleware/validation");
-const asyncHandler = require("express-async-handler");
-const mongoose = require("mongoose");
+import Post from "../models/post.js";
+import Comment from "../models/comment.js";
+import {
+  canCreatePost,
+  canUpdatePost,
+  canDeletePost,
+} from "../middleware/authorization.js";
+import authenticate from "../middleware/authentication.js";
+import {
+  createPostValidationRules,
+  createUpdatePostValidationRules,
+  validate,
+} from "../middleware/validation.js";
+import asyncHandler from "express-async-handler";
+import mongoose from "mongoose";
 
-exports.getAllPosts = [
+const getAllPosts = [
   authenticate,
   asyncHandler(async (req, res, next) => {
     let query;
@@ -23,10 +31,10 @@ exports.getAllPosts = [
   }),
 ];
 
-exports.createPost = [
-  authorizer.canCreatePost,
-  ...validator.createPostValidationRules(),
-  validator.validate,
+const createPost = [
+  canCreatePost,
+  ...createPostValidationRules(),
+  validate,
   asyncHandler(async (req, res, next) => {
     // All checks passed. Create the post
     const { title, text, isPublished } = req.body;
@@ -42,7 +50,7 @@ exports.createPost = [
   }),
 ];
 
-exports.getPost = [
+const getPost = [
   authenticate,
   asyncHandler(async (req, res, next) => {
     // Make sure ID provided is valid
@@ -81,10 +89,10 @@ exports.getPost = [
   }),
 ];
 
-exports.updatePost = [
-  authorizer.canUpdatePost,
-  ...validator.createUpdatePostValidationRules(),
-  validator.validate,
+const updatePost = [
+  canUpdatePost,
+  ...createUpdatePostValidationRules(),
+  validate,
   asyncHandler(async (req, res, next) => {
     // Make sure post ID is valid
     if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
@@ -137,8 +145,8 @@ exports.updatePost = [
   }),
 ];
 
-exports.deletePost = [
-  authorizer.canDeletePost,
+const deletePost = [
+  canDeletePost,
   asyncHandler(async (req, res, next) => {
     // Make sure post ID is valid
     if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
@@ -168,3 +176,13 @@ exports.deletePost = [
     return res.status(200).json({ message: "Successfully deleted post" });
   }),
 ];
+
+const postsController = {
+  getAllPosts,
+  createPost,
+  getPost,
+  updatePost,
+  deletePost,
+};
+
+export default postsController;

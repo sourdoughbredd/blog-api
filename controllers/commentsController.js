@@ -1,11 +1,19 @@
-const Comment = require("../models/comment");
-const Post = require("../models/post");
-const asyncHandler = require("express-async-handler");
-const authorizer = require("../middleware/authorization");
-const validator = require("../middleware/validation");
-const mongoose = require("mongoose");
+import Comment from "../models/comment.js";
+import Post from "../models/post.js";
+import asyncHandler from "express-async-handler";
+import {
+  canCreateComment,
+  canUpdateComment,
+  canDeleteComment,
+} from "../middleware/authorization.js";
+import {
+  createCommentValidationRules,
+  createUpdateCommentValidationRules,
+  validate,
+} from "../middleware/validation.js";
+import mongoose from "mongoose";
 
-exports.getPostComments = asyncHandler(async (req, res, next) => {
+const getPostComments = asyncHandler(async (req, res, next) => {
   // Make sure ID provided is valid
   if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
     return res.status(400).json({
@@ -36,10 +44,10 @@ exports.getPostComments = asyncHandler(async (req, res, next) => {
   res.status(200).json({ message: "Success", comments });
 });
 
-exports.createPostComment = [
-  authorizer.canCreateComment,
-  ...validator.createCommentValidationRules(),
-  validator.validate,
+const createPostComment = [
+  canCreateComment,
+  ...createCommentValidationRules(),
+  validate,
   asyncHandler(async (req, res, next) => {
     // Make sure ID provided is valid
     if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
@@ -74,7 +82,7 @@ exports.createPostComment = [
   }),
 ];
 
-exports.getPostComment = asyncHandler(async (req, res, next) => {
+const getPostComment = asyncHandler(async (req, res, next) => {
   // Make sure IDs provided are valid
   if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
     return res.status(400).json({
@@ -121,10 +129,10 @@ exports.getPostComment = asyncHandler(async (req, res, next) => {
   res.status(201).json({ message: "Success", comment });
 });
 
-exports.updatePostComment = [
-  authorizer.canUpdateComment,
-  ...validator.createUpdateCommentValidationRules(),
-  validator.validate,
+const updatePostComment = [
+  canUpdateComment,
+  ...createUpdateCommentValidationRules(),
+  validate,
   asyncHandler(async (req, res, next) => {
     // Make sure IDs provided are valid
     if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
@@ -187,8 +195,8 @@ exports.updatePostComment = [
   }),
 ];
 
-exports.deletePostComment = [
-  authorizer.canDeleteComment,
+const deletePostComment = [
+  canDeleteComment,
   asyncHandler(async (req, res, next) => {
     // Make sure IDs provided are valid
     if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
@@ -247,3 +255,13 @@ exports.deletePostComment = [
     return res.status(200).json({ message: "Successfully deleted comment" });
   }),
 ];
+
+const commentsController = {
+  getPostComments,
+  createPostComment,
+  getPostComment,
+  updatePostComment,
+  deletePostComment,
+};
+
+export default commentsController;

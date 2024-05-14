@@ -1,13 +1,13 @@
-const express = require("express");
-const path = require("path");
-const cookieParser = require("cookie-parser");
-const logger = require("morgan");
-const cors = require("cors");
-const corsOptions = require("./config/cors");
+import express from "express";
+import path from "path";
+import cookieParser from "cookie-parser";
+import logger from "morgan";
+import cors from "cors";
+import corsOptions from "./config/cors.js";
 
-const indexRouter = require("./routes/index");
-const usersRouter = require("./routes/users");
-const postsRouter = require("./routes/posts");
+import indexRouter from "./routes/index.js";
+import usersRouter from "./routes/users.js";
+import postsRouter from "./routes/posts.js";
 
 const app = express();
 
@@ -15,11 +15,11 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(import.meta.url, "public")));
 app.use(cors(corsOptions));
 
 // Connect to DB
-const db = require("./config/database");
+import db from "./config/database.js";
 db.connect().catch((err) => console.log(err));
 
 app.use("/", indexRouter);
@@ -51,4 +51,4 @@ app.use(function (err, req, res, next) {
   });
 });
 
-module.exports = app;
+export default app;

@@ -1,4 +1,4 @@
-const { authenticate } = require("./authentication");
+import authenticate from "./authentication.js";
 
 const isLoggedIn = (req, res, next) => {
   if (!req.user) {
@@ -50,27 +50,31 @@ const isReferencedUserOrAuthor = (req, res, next) => {
 };
 
 // USERS
-
-exports.canGetAllUsers = [authenticate, isLoggedIn, isAuthor];
-
-exports.canGetUser = [authenticate, isLoggedIn, isAuthor];
-
-exports.canUpdateUser = [authenticate, isLoggedIn, isReferencedUser];
-
-exports.canDeleteUser = [authenticate, isLoggedIn, isReferencedUserOrAuthor];
+const canGetAllUsers = [authenticate, isLoggedIn, isAuthor];
+const canGetUser = [authenticate, isLoggedIn, isAuthor];
+const canUpdateUser = [authenticate, isLoggedIn, isReferencedUser];
+const canDeleteUser = [authenticate, isLoggedIn, isReferencedUserOrAuthor];
 
 // POSTS
-
-exports.canCreatePost = [authenticate, isLoggedIn, isAuthor];
-
-exports.canUpdatePost = [authenticate, isLoggedIn, isAuthor];
-
-exports.canDeletePost = [authenticate, isLoggedIn, isAuthor];
+const canCreatePost = [authenticate, isLoggedIn, isAuthor];
+const canUpdatePost = [authenticate, isLoggedIn, isAuthor];
+const canDeletePost = [authenticate, isLoggedIn, isAuthor];
 
 // COMMENTS
+const canCreateComment = [authenticate, isLoggedIn];
+const canUpdateComment = [authenticate, isLoggedIn]; // more done in controller after looking up comment
+const canDeleteComment = [authenticate, isLoggedIn]; // more done in controller after looking up comment
 
-exports.canCreateComment = [authenticate, isLoggedIn];
-
-exports.canUpdateComment = [authenticate, isLoggedIn]; // more done in controller after looking up comment
-
-exports.canDeleteComment = [authenticate, isLoggedIn]; // more done in controller after looking up comment
+// Export all
+export {
+  canGetAllUsers,
+  canGetUser,
+  canUpdateUser,
+  canDeleteUser,
+  canCreatePost,
+  canUpdatePost,
+  canDeletePost,
+  canCreateComment,
+  canUpdateComment,
+  canDeleteComment,
+};

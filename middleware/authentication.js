@@ -1,8 +1,8 @@
-const passport = require("../config/passport");
+import passport from "../config/passport.js";
 
 // Authentication will fail if user not found in DB or if the refresh token in
 // their user record has been revoked (nullified)
-exports.authenticate = (req, res, next) => {
+const authenticate = (req, res, next) => {
   passport.authenticate("jwt", { session: false }, (err, user, info) => {
     if (err) {
       return next(err);
@@ -15,3 +15,5 @@ exports.authenticate = (req, res, next) => {
     next();
   })(req, res, next);
 };
+
+export default authenticate;

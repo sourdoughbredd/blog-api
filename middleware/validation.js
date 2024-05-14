@@ -1,7 +1,7 @@
-const { body, validationResult } = require("express-validator");
+import { body, validationResult } from "express-validator";
 
 // Error handling middleware
-exports.validate = (req, res, next) => {
+export const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
@@ -20,7 +20,7 @@ exports.validate = (req, res, next) => {
 
 // USERS
 
-exports.createSignupValidationRules = () => [
+export const createSignupValidationRules = () => [
   body("username")
     .trim()
     .isLength({ min: 5, max: 20 })
@@ -46,21 +46,21 @@ exports.createSignupValidationRules = () => [
     ),
 ];
 
-exports.createLoginValidationRules = () => [
+export const createLoginValidationRules = () => [
   body("username", "Username is required").trim().notEmpty(),
   body("password", "Password is required").trim().notEmpty(),
 ];
 
-exports.createUpdateUserValidationRules = () => {
+export const createUpdateUserValidationRules = () => {
   // Updating user is same as signup, except the fields are optional
-  return this.createSignupValidationRules().map((rule) =>
+  return createSignupValidationRules().map((rule) =>
     rule.optional({ values: "falsy" })
   );
 };
 
 // POSTS
 
-exports.createPostValidationRules = () => [
+export const createPostValidationRules = () => [
   body("title")
     .trim()
     .notEmpty()
@@ -80,19 +80,19 @@ exports.createPostValidationRules = () => [
   body("isPublished", "isPublished must be a boolean").isBoolean(),
 ];
 
-exports.createUpdatePostValidationRules = () => {
+export const createUpdatePostValidationRules = () => {
   // Updating post is same as create post, except the fields are optional
-  return this.createPostValidationRules().map((rule) =>
+  return createPostValidationRules().map((rule) =>
     rule.optional({ values: "falsy" })
   );
 };
 
 // COMMENTS
 
-exports.createCommentValidationRules = () => [
+export const createCommentValidationRules = () => [
   body("text", "Text must be 1 to 200 characters long")
     .trim()
     .isLength({ min: 1, max: 200 }),
 ];
 
-exports.createUpdateCommentValidationRules = this.createCommentValidationRules;
+export const createUpdateCommentValidationRules = createCommentValidationRules;

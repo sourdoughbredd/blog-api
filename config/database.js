@@ -1,11 +1,11 @@
-require("dotenv").config();
+import "dotenv/config.js";
 
 // Set up database connection
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 mongoose.set("strictQuery", false);
 const uri = process.env.MONGODB_URI;
 
-module.exports.connect = async () => {
+async function connect() {
   try {
     console.log("Connecting to db...");
     await mongoose.connect(uri);
@@ -13,11 +13,11 @@ module.exports.connect = async () => {
   } catch (err) {
     console.error("Database connection failed!", err);
   }
-};
+}
 
-module.exports.connection = mongoose.connection;
+const connection = mongoose.connection;
 
-module.exports.disconnect = async () => {
+async function disconnect() {
   try {
     console.log("Disconnecting from db...");
     await mongoose.disconnect();
@@ -26,4 +26,6 @@ module.exports.disconnect = async () => {
     console.error("Failed to disconnect cleanly", err);
     throw err; // Maintain consistency in error handling
   }
-};
+}
+
+export default { connect, connection, disconnect };

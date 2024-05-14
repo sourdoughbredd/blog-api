@@ -4,9 +4,10 @@
  * Module dependencies.
  */
 
-const app = require("../app");
-const debug = require("debug")("blog-api:server");
-const http = require("http");
+import app from "../app.js";
+import debug from "debug";
+const logger = debug("blog-api:server");
+import { createServer } from "http";
 
 /**
  * Get port from environment and store in Express.
@@ -19,7 +20,7 @@ app.set("port", port);
  * Create HTTP server.
  */
 
-const server = http.createServer(app);
+const server = createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -82,5 +83,5 @@ function onError(error) {
 function onListening() {
   const addr = server.address();
   const bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
-  debug("Listening on " + bind);
+  logger("Listening on " + bind);
 }

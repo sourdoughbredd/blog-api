@@ -1,20 +1,29 @@
-require("dotenv").config();
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const asyncHandler = require("express-async-handler");
-const User = require("../models/user");
-const authorizer = require("../middleware/authorization");
-const validator = require("../middleware/validation");
-const mongoose = require("mongoose");
+import "dotenv/config.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import asyncHandler from "express-async-handler";
+import User from "../models/user.js";
+import {
+  canGetAllUsers,
+  canGetUser,
+  canUpdateUser,
+  canDeleteUser,
+} from "../middleware/authorization.js";
+import {
+  createSignupValidationRules,
+  createLoginValidationRules,
+  createUpdateUserValidationRules,
+  validate,
+} from "../middleware/validation.js";
+import mongoose from "mongoose";
 
 // SIGNUP
-exports.signup = [
-  ...validator.createSignupValidationRules(),
-  validator.validate,
+const signup = [
+  ...createSignupValidationRules(),
+  validate,
   // Process the request
   asyncHandler(async (req, res, next) => {
     // Check validation
-
     const { username, email, password } = req.body;
 
     // Check if email already in DB
@@ -48,9 +57,9 @@ exports.signup = [
 ];
 
 // LOGIN
-exports.login = [
-  ...validator.createLoginValidationRules(),
-  validator.validate,
+const login = [
+  ...createLoginValidationRules(),
+  validate,
   // Process the request
   asyncHandler(async (req, res, next) => {
     const { username, password } = req.body;
@@ -87,7 +96,7 @@ exports.login = [
 ];
 
 // REFRESH TOKEN
-exports.refreshAccessToken = asyncHandler(async (req, res, next) => {
+const refreshAccessToken = asyncHandler(async (req, res, next) => {
   // Grab refresh token
   const { refreshToken } = req.body;
   if (!refreshToken) {
@@ -134,7 +143,7 @@ exports.refreshAccessToken = asyncHandler(async (req, res, next) => {
 });
 
 // LOGOUT
-exports.logout = asyncHandler(async (req, res, next) => {
+const logout = asyncHandler(async (req, res, next) => {
   // Logout by deleting refreshToken from user so it can't be used again
   const { refreshToken } = req.body;
   if (!refreshToken) {
@@ -163,16 +172,16 @@ exports.logout = asyncHandler(async (req, res, next) => {
   }
 });
 
-exports.getAllUsers = [
-  authorizer.canGetAllUsers,
+const getAllUsers = [
+  canGetAllUsers,
   asyncHandler(async (req, res, next) => {
     const users = await User.find({}, "username email").exec();
     res.status(200).json({ message: "Success", users });
   }),
 ];
 
-exports.getUser = [
-  authorizer.canGetUser,
+const getUser = [
+  canGetUser,
   asyncHandler(async (req, res, next) => {
     // Make sure ID provided is valid
     if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
@@ -198,10 +207,10 @@ exports.getUser = [
   }),
 ];
 
-exports.updateUser = [
-  authorizer.canUpdateUser,
-  ...validator.createUpdateUserValidationRules(),
-  validator.validate,
+const updateUser = [
+  canUpdateUser,
+  ...createUpdateUserValidationRules(),
+  validate,
   asyncHandler(async (req, res, next) => {
     // Make sure ID provided is valid
     if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
@@ -278,8 +287,8 @@ exports.updateUser = [
   }),
 ];
 
-exports.deleteUser = [
-  authorizer.canDeleteUser,
+const deleteUser = [
+  canDeleteUser,
   asyncHandler(async (req, res, next) => {
     // Make sure ID provided is valid
     if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
@@ -305,3 +314,16 @@ exports.deleteUser = [
     return res.status(200).json({ message: "User deleted successfully" });
   }),
 ];
+
+const usersController = {
+  signup,
+  login,
+  refreshAccessToken,
+  logout,
+  getAllUsers,
+  getUser,
+  updateUser,
+  deleteUser,
+};
+
+export default usersController;

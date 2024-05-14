@@ -1,17 +1,13 @@
-import express from "express";
-import cookieParser from "cookie-parser";
-import logger from "morgan";
-import path from "path";
-import cors from "cors";
-import corsOptions from "../../config/cors.js";
+const express = require("express");
+const path = require("path");
+const cookieParser = require("cookie-parser");
+const logger = require("morgan");
+const cors = require("cors");
+const corsOptions = require("../../config/cors.js");
 
-import indexRouter from "../../routes/index.js";
-import usersRouter from "../../routes/users.js";
-import postsRouter from "../../routes/posts.js";
-
-import { fileURLToPath } from "url";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const indexRouter = require("../../routes/index.js");
+const usersRouter = require("../../routes/users.js");
+const postsRouter = require("../../routes/posts.js");
 
 const app = express();
 
@@ -54,4 +50,4 @@ app.use(function (err, req, res, next) {
   });
 });
 
-export default app;
+module.exports = app;

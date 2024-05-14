@@ -1,4 +1,4 @@
-require("dotenv").config();
+import "dotenv/config.js";
 
 const developmentOrigins = [process.env.DEV_FRONTEND_URL];
 const productionOrigins = [
@@ -25,4 +25,4 @@ const corsOptions = {
   credentials: true, // Allow credentials (e.g., cookies, authorization headers)
 };
 
-module.exports = corsOptions;
+export default corsOptions;
