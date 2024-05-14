@@ -41,4 +41,4 @@ const closeDatabase = async function () {
   await mongoServerConfig.mongoServer.stop();
 };
 
-export default { initializeMongoServer, closeDatabase };
+export { initializeMongoServer, closeDatabase };
