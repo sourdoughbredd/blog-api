@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const MongoMemoryServer = require("mongodb-memory-server");
+import mongoose from "mongoose";
+import { MongoMemoryServer } from "mongodb-memory-server";
 
 // This object will hold the reference to the in-memory server and connection
 const mongoServerConfig = {
@@ -7,7 +7,7 @@ const mongoServerConfig = {
   mongoUri: null,
 };
 
-exports.initializeMongoServer = async function () {
+const initializeMongoServer = async function () {
   // Create the MongoMemoryServer instance
   mongoServerConfig.mongoServer = await MongoMemoryServer.create();
   mongoServerConfig.mongoUri = mongoServerConfig.mongoServer.getUri();
@@ -34,9 +34,11 @@ exports.initializeMongoServer = async function () {
   });
 };
 
-exports.closeDatabase = async function () {
+const closeDatabase = async function () {
   // Close the connection and stop the server
   await mongoose.connection.dropDatabase();
   await mongoose.connection.close();
   await mongoServerConfig.mongoServer.stop();
 };
+
+export default { initializeMongoServer, closeDatabase };

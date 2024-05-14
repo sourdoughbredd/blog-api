@@ -1,7 +1,7 @@
 // Import dependencies
-const request = require("supertest");
-const { expect } = require("chai");
-const app = require("./config/appTesting.js");
+import request from "supertest";
+import { expect } from "chai";
+import app from "./config/appTesting.js";
 
 describe("GET index route", function () {
   it("should return a 200 OK status", async () => {

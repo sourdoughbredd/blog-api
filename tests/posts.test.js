@@ -5,7 +5,7 @@ import {
   initializeMongoServer,
   closeDatabase,
 } from "./config/dbConfigTesting.js";
-import post from "../models/post";
+import post from "../models/post.js";
 
 describe("GET all posts", () => {
   before(async function () {

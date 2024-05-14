@@ -1,13 +1,13 @@
-const express = require("express");
-const path = require("path");
-const cookieParser = require("cookie-parser");
-const logger = require("morgan");
-const cors = require("cors");
-const corsOptions = require("../../config/cors.js");
+import express from "express";
+import path from "path";
+import cookieParser from "cookie-parser";
+import logger from "morgan";
+import cors from "cors";
+import corsOptions from "./config/cors.js";
 
-const indexRouter = require("../../routes/index.js");
-const usersRouter = require("../../routes/users.js");
-const postsRouter = require("../../routes/posts.js");
+import indexRouter from "./routes/index.js";
+import usersRouter from "./routes/users.js";
+import postsRouter from "./routes/posts.js";
 
 const app = express();
 
@@ -15,11 +15,8 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(import.meta.url, "public")));
 app.use(cors(corsOptions));
-
-// Connect to DB
-// TO DO
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
@@ -50,4 +47,4 @@ app.use(function (err, req, res, next) {
   });
 });
 
-module.exports = app;
+export default app;
