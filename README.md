@@ -4,7 +4,7 @@ A comprehensive REST API for managing a blog, including user authentication, pos
 
 ## Description
 
-This project is a blog API that allows users to create, read, update, and delete blog posts and comments. It includes user authentication and authorization features to ensure secure access to the blog functionalities.
+This is a blog API that allows users to create, read, update, and delete blog posts and comments. It includes user authentication and authorization features to ensure secure access to the blog functionalities.
 
 ## Table of Contents
 
