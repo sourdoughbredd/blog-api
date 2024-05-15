@@ -41,7 +41,7 @@ You can test out the the API with the [Client page](https://blog-client-bb.netli
    ```sh
    npm install
    ```
-4. Create a .env file in the base directory to be able to run this locally. It should have the following environment variables.
+4. Create a .env file in the base directory. It should have the following environment variables.
 
    ```sh
    NODE_ENV="development or production"
