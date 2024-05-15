@@ -4,7 +4,7 @@ A comprehensive REST API for managing a blog, including user authentication, pos
 
 ## Description
 
-This is a blog API that allows users to create, read, update, and delete blog posts and comments. It includes user authentication and authorization features to ensure secure access to the blog functionalities.
+This is a blog API that allows users to create, read, update, and delete blog posts and comments. It includes user authentication and authorization features to ensure secure access to the blog functionalities. It also uses CORS policies to limit access to certain client URLs.
 
 ## Table of Contents
 
@@ -25,6 +25,7 @@ You can test out the the API with the [Client page](https://blog-client-bb.netli
 
 - User authentication and authorization with PassportJS and JWTs w/ refresh tokens
 - Create, read, update, and delete endpoints for blog posts, users, and comments
+- Limit access to certain client URLs with CORS policies
 
 ## Installation
 
@@ -40,6 +41,19 @@ You can test out the the API with the [Client page](https://blog-client-bb.netli
    ```sh
    npm install
    ```
+4. Create a .env file in the base directory to be able to run this locally. It should have the following environment variables.
+
+   ```sh
+   NODE_ENV="development or production"
+   DEV_FRONTEND_URL="frontend url in development mode, e.g. http://localhost:5173"
+   BLOG_CLIENT_URL="client (frontend) url in production mode, e.g. example-blog-client-url.com"
+   BLOG_CMS_URL="CMS (frontend) url in production mode, e.g. example-blog-cms-url.com"
+   MONGODB_URI="the connection string for your mongoDB database"
+   JWT_SECRET="your secret used for signing JWT access tokens"
+   JWT_REFRESH_SECRET="your secret used for signing JWT refresh tokens"
+   ```
+
+   The three frontend URL variables are used in the CORS policy to allow those URL's to make requests. The `DEV_FRONTEND_URL` will work when `NODE_ENV="development"`. The other two URLs will work otherwise. You can use these variables to allow whichever URL's you want. If you need more customization, just edit the `cors.js` config file in the config directory.
 
 ## Usage
 
@@ -220,7 +234,7 @@ To use this API, you need to handle user authentication using JSON Web Tokens (J
   - **Response**:
     ```json
     {
-      "posts": [array_of_post_objects]
+      "posts": ["array_of_post_objects"]
     }
     ```
 
@@ -231,7 +245,7 @@ To use this API, you need to handle user authentication using JSON Web Tokens (J
   - **Response**:
     ```json
     {
-      "post": {post_object}
+      "post": {"post_object"}
     }
     ```
 
@@ -261,7 +275,7 @@ To use this API, you need to handle user authentication using JSON Web Tokens (J
   - **Response**:
     ```json
     {
-      "comments": [array_of_comment_objects]
+      "comments": ["array_of_comment_objects"]
     }
     ```
 
@@ -283,7 +297,7 @@ To use this API, you need to handle user authentication using JSON Web Tokens (J
   - **Response**:
     ```json
     {
-      "comment": {comment_object}
+      "comment": {"comment_object"}
     }
     ```
 
