@@ -21,7 +21,7 @@ This is a blog API that allows users to create, read, update, and delete blog po
 
 You can test out the the API with the [Client page](https://blog-client-bb.netlify.app) or the [CMS page](https://blog-cms-bb.netlify.app).
 
-Source code for the [Client page](https://github.com/sourdoughbredd/blog-client) and [CMS page](https://github.com/sourdoughbredd/blog-cms)
+View the source code for the [Client page](https://github.com/sourdoughbredd/blog-client) and [CMS page](https://github.com/sourdoughbredd/blog-cms) to see how you might use the API for an actual blog website!
 
 ## Features
 
