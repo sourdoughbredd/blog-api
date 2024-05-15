@@ -26,6 +26,7 @@ View the [Client source code](https://github.com/sourdoughbredd/blog-client) and
 ## Features
 
 - User authentication and authorization with PassportJS and JWTs w/ refresh tokens
+- Secure password storage with bcryptJS
 - Create, read, update, and delete endpoints for blog posts, users, and comments
 - Limit access to certain client URLs with CORS policies
 
@@ -335,7 +336,8 @@ along with other fields to clarify the error or give the user useful information
 
 - NodeJS + Express (backend design)
 - MongoDB + Mongoose (database operations)
-- Passport.js with JWT (user authentication)
+- PassportJS with JWT (user authentication)
+- bcryptJS (password encryption)
 - Jest (testing)
 
 ## License
