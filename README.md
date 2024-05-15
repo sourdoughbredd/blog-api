@@ -345,15 +345,3 @@ This project is licensed under the MIT License.
 ## Contact Information
 
 For any questions or suggestions, please contact Brett Bussell at [bwbussell24@gmail.com](mailto:bwbussell24@gmail.com).
-
-```
-
-```
-
-```
-
-```
-
-```
-
-```
