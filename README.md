@@ -55,15 +55,13 @@ You can test out the the API with the [Client page](https://blog-client-bb.netli
 
    The three frontend URL variables are used in the CORS policy to allow those URL's to make requests. The `DEV_FRONTEND_URL` will work when `NODE_ENV="development"`. The other two URLs will work otherwise. You can use these variables to allow whichever URL's you want. If you need more customization, just edit the `cors.js` config file in the config directory.
 
-## Usage
+5. To start the server, run:
 
-To start the server, run:
+   ```sh
+   npm start
+   ```
 
-```sh
-npm start
-```
-
-The server will be running on `http://localhost:3000`.
+   The server will be running on `http://localhost:3000`.
 
 ## Usage
 
